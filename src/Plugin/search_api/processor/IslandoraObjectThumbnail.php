@@ -55,6 +55,24 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
     return $properties;
   }
 
+  public function is_404($url) {
+    $handle = curl_init($url);
+    curl_setopt($handle,  CURLOPT_RETURNTRANSFER, TRUE);
+
+    /* Get the HTML or whatever is linked in $url. */
+    $response = curl_exec($handle);
+
+    /* Check for 404 (file not found). */
+    $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+    curl_close($handle);
+
+    /* If the document has loaded successfully without any redirection or error */
+    if ($httpCode >= 200 && $httpCode < 300) {
+      return false;
+    } else {
+      return true;
+    }
+  }
   /**
    * {@inheritdoc}
    */
@@ -108,10 +126,15 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
               $file_uri = $iterator->field_media_document->entity->getFileUri();
             }
             if (isset($file_uri)) {
-              //$style = ImageStyle::load('thumbnail');
               $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('thumbnail');
               $file_url = $style->buildUrl($file_uri);
-              $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL, 'search_api_islandora_object_thumbnail');
+
+              // if unable to obtain the thumbnail, get the original image instead
+              if ($this->is_404($file_url)) {
+                $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file_uri);
+              }
+              $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
+                'search_api_islandora_object_thumbnail');
               foreach ($fields as $field) {
                 $field->addValue($file_url);
               }
@@ -119,12 +142,6 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
             // break since we assume that one media has ONLY one thumbnail
             break;
           }
-
-
-
-
-
-
         }
       }
     }
