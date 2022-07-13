@@ -9,6 +9,7 @@ use Drupal\search_api\Processor\ProcessorProperty;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\media\Entity\Media;
 use Drupal\file\Entity\File;
+use Drupal\image\Entity\ImageStyle;
 
 /**
  * Adds the item's view count to the indexed data.
@@ -98,7 +99,8 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
             $file_uri = $found->field_media_document->entity->getFileUri();
           }
           if (isset($file_uri)) {
-            $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file_uri);
+            $style = ImageStyle::load('thumbnail');
+            $file_url = $style->buildUrl($file_uri);
             $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL, 'search_api_islandora_object_thumbnail');
             foreach ($fields as $field) {
               $field->addValue($file_url);
