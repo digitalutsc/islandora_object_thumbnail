@@ -70,7 +70,9 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
         $thumbnail = null;
         if (count($medias)> 1) {
           foreach ($medias as $media) {
-            if ($media->hasField("field_media_use") && $media->get("field_media_use")->getValue() == "Thumbnail Image") {
+            if ((get_class($media) === "Drupal\media\Entity\Media") &&
+              $media->hasField("field_media_use")
+              && $media->get("field_media_use")->getValue() == "Thumbnail Image") {
               $thumbnail = $media;
               break;
             }
