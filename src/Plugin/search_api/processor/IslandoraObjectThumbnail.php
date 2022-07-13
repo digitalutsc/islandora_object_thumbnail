@@ -126,13 +126,13 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
               $file_uri = $iterator->field_media_document->entity->getFileUri();
             }
             if (isset($file_uri)) {
-              $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('thumbnail');
-              $file_url = $style->buildUrl($file_uri);
+              $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('large');
+              $file_url = $style->buildUrl($file_uri.".jpg");
 
               // if unable to obtain the thumbnail, get the original image instead
-              if ($this->is_404($file_url)) {
+              /*if ($this->is_404($file_url)) {
                 $file_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file_uri);
-              }
+              }*/
               $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
                 'search_api_islandora_object_thumbnail');
               foreach ($fields as $field) {
