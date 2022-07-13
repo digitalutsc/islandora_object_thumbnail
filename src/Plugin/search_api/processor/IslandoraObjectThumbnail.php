@@ -61,54 +61,70 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
   public function addFieldValues(ItemInterface $item) {
     $datasourceId = $item->getDatasourceId();
     if ($datasourceId == 'entity:node') {
-
-
       // process to get the thumbnail
       $node = $item->getOriginalObject()->getValue();
-      if ($node->hasField('field_islandora_object_media')) {
-        $medias = $node->get('field_islandora_object_media');
-        $thumbnail = null;
-        if (count($medias)> 1) {
-          foreach ($medias as $media) {
-            if ((get_class($media) === "Drupal\media\Entity\Media") &&
-              $media->hasField("field_media_use")
-              && $media->get("field_media_use")->getValue() == "Thumbnail Image") {
-              $thumbnail = $media;
-              break;
-            }
-          }
-        }
-        else if (count($medias) == 1) {
-          $thumbnail = $medias[0];
-        }
 
-        if (isset($thumbnail)) {
-          $found = Media::load($thumbnail->getValue()['target_id']);
-          $file_uri = null;
-          if ($found->hasField('field_media_image')) {
-            $file_uri = $found->field_media_image->entity->getFileUri();
-          }
-          else if ($found->hasField('field_media_audio_file')) {
-            $file_uri = $found->field_media_audio_file->entity->getFileUri();
-          }
-          else if ($found->hasField('field_media_video_file')) {
-            $file_uri = $found->field_media_video_file->entity->getFileUri();
-          }
-          else if ($found->hasField('field_media_file')) {
-            $file_uri = $found->field_media_file->entity->getFileUri();
-          }
-          else if ($found->hasField('field_media_document')) {
-            $file_uri = $found->field_media_document->entity->getFileUri();
-          }
-          if (isset($file_uri)) {
-            //$style = ImageStyle::load('thumbnail');
-            $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('thumbnail');
-            $file_url = $style->buildUrl($file_uri);
-            $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL, 'search_api_islandora_object_thumbnail');
-            foreach ($fields as $field) {
-              $field->addValue($file_url);
+      // check the node is islandora_object with media field
+      if ($node->hasField('field_islandora_object_media')) {
+
+        // Get the referenced media
+        $referred_medias = $node->get('field_islandora_object_media');
+        // loop through each media
+        foreach ($referred_medias as $refferred_media) {
+          $iterator = Media::load($refferred_media->getValue()['target_id']);
+
+          $has_thumbnail = false;
+          // check if this media has thumbnail assigned by Media Use
+          if ((get_class($iterator) === "Drupal\media\Entity\Media") &&
+            $iterator->hasField("field_media_use")) {
+            $media_uses = $iterator->get("field_media_use")->referencedEntities();
+            // loop through media uses to check if there is Thumbnail
+            foreach ($media_uses as $media_use) {
+              if ($media_use->label() === "Thumbnail Image") {
+                $has_thumbnail = true;
+
+                // break since we assume that one media has ONLY one thumbnail
+                break;
+              }
             }
           }
+
+          // get the thumbnail if there is thumbnail assigned based on the Media Use
+          if ($has_thumbnail) {
+            $file_uri = null;
+            if ($iterator->hasField('field_media_image')) {
+              $file_uri = $iterator->field_media_image->entity->getFileUri();
+            }
+            else if ($iterator->hasField('field_media_audio_file')) {
+              $file_uri = $iterator->field_media_audio_file->entity->getFileUri();
+            }
+            else if ($iterator->hasField('field_media_video_file')) {
+              $file_uri = $iterator->field_media_video_file->entity->getFileUri();
+            }
+            else if ($iterator->hasField('field_media_file')) {
+              $file_uri = $iterator->field_media_file->entity->getFileUri();
+            }
+            else if ($iterator->hasField('field_media_document')) {
+              $file_uri = $iterator->field_media_document->entity->getFileUri();
+            }
+            if (isset($file_uri)) {
+              //$style = ImageStyle::load('thumbnail');
+              $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('thumbnail');
+              $file_url = $style->buildUrl($file_uri);
+              $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL, 'search_api_islandora_object_thumbnail');
+              foreach ($fields as $field) {
+                $field->addValue($file_url);
+              }
+            }
+            // break since we assume that one media has ONLY one thumbnail
+            break;
+          }
+
+
+
+
+
+
         }
       }
     }
