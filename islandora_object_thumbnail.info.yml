@@ -1,0 +1,9 @@
+name: 'Islandora Object Thumbnail Indexing to Solr'
+type: module
+description: 'This module adds an processor Search API indexer to Solr for Islandora Object with media use'
+core_version_requirement: '^8.8 || ^9'
+package: 'Islandora Lite'
+dependencies:
+  - search_api:search_api
+  - search_api_solr:search_api_solr
+

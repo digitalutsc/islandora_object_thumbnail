@@ -1,0 +1,38 @@
+<?php
+
+/**
+ * @file
+ * Contains islandora_object_thumbnail.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+use Drupal\node\NodeInterface;
+use Drupal\search_api\Plugin\search_api\datasource\ContentEntity;
+
+/**
+ * Implements hook_help().
+ */
+function islandora_object_thumbnail_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the islandora_object_thumbnail module.
+    case 'help.page.islandora_object_thumbnail':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('My Awesome Module') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function islandora_object_thumbnail_theme() {
+  return [
+    'islandora_object_thumbnail' => [
+      'render element' => 'children',
+    ],
+  ];
+}

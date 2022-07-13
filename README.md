@@ -1,0 +1,1 @@
+# islandora_object_thumbnail
