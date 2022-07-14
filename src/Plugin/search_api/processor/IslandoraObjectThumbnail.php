@@ -79,76 +79,105 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
   public function addFieldValues(ItemInterface $item) {
     $datasourceId = $item->getDatasourceId();
     if ($datasourceId == 'entity:node') {
+      global $base_url;
       // process to get the thumbnail
       $node = $item->getOriginalObject()->getValue();
 
-      // check the node is islandora_object with media field
-      if ($node->hasField('field_islandora_object_media')) {
+      // send the rest request to view islandora_object_thumbnail
+      $uri = "$base_url/islandora_object/". $node->id() . '/thumbnail';
 
-        // Get the referenced media
-        $referred_medias = $node->get('field_islandora_object_media');
-        // loop through each media
-        foreach ($referred_medias as $refferred_media) {
-          $iterator = Media::load($refferred_media->getValue()['target_id']);
+      // process the restons
+      $request = \Drupal::httpClient()->get($uri);
+      $thumbnails = json_decode($request->getBody());
 
-          $has_thumbnail = false;
-          // check if this media has thumbnail assigned by Media Use
-          if ((get_class($iterator) === "Drupal\media\Entity\Media") &&
-            $iterator->hasField("field_media_use")) {
-            $media_uses = $iterator->get("field_media_use")->referencedEntities();
-            // loop through media uses to check if there is Thumbnail
-            foreach ($media_uses as $media_use) {
-              if ($media_use->label() === "Thumbnail Image") {
-                $has_thumbnail = true;
+      // loop but assume each media only has ONLY ONE thumbnail
+      foreach ($thumbnails as $thumbnail) {
+        $thumbnail_url = $base_url . $thumbnail->thumbnail__target_id;
 
-                // break since we assume that one media has ONLY one thumbnail
-                break;
-              }
+        // set value to index to Solr
+        $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
+          'search_api_islandora_object_thumbnail');
+        foreach ($fields as $field) {
+          $field->addValue($thumbnail_url);
+        }
+      }
+    }
+  }
+
+  /**
+   * Unused
+   * @param $node
+   * @return void
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  public function getThumbnailByField($node, ItemInterface $item) {
+    // check the node is islandora_object with media field
+    if ($node->hasField('field_islandora_object_media')) {
+
+      // Get the referenced media
+      $referred_medias = $node->get('field_islandora_object_media');
+      // loop through each media
+      foreach ($referred_medias as $refferred_media) {
+        $iterator = Media::load($refferred_media->getValue()['target_id']);
+
+        $has_thumbnail = false;
+        // check if this media has thumbnail assigned by Media Use
+        if ((get_class($iterator) === "Drupal\media\Entity\Media") &&
+          $iterator->hasField("field_media_use")) {
+          $media_uses = $iterator->get("field_media_use")->referencedEntities();
+          // loop through media uses to check if there is Thumbnail
+          foreach ($media_uses as $media_use) {
+            if ($media_use->label() === "Thumbnail Image") {
+              $has_thumbnail = true;
+
+              // break since we assume that one media has ONLY one thumbnail
+              break;
             }
           }
+        }
 
-          // get the thumbnail if there is thumbnail assigned based on the Media Use
-          if ($has_thumbnail) {
-            $file_uri = null;
+        // get the thumbnail if there is thumbnail assigned based on the Media Use
+        if ($has_thumbnail) {
+          $file_uri = null;
+          $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/generic.png");;
+          if ($iterator->hasField('field_media_image')) {
+            $file_uri = $iterator->field_media_image->entity->getFileUri();
+            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/image.png");;
+          }
+          else if ($iterator->hasField('field_media_audio_file')) {
+            $file_uri = $iterator->field_media_audio_file->entity->getFileUri();
+            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/audio.png");;
+          }
+          else if ($iterator->hasField('field_media_video_file')) {
+            $file_uri = $iterator->field_media_video_file->entity->getFileUri();
+            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/video.png");;
+          }
+          else if ($iterator->hasField('field_media_file')) {
+            $file_uri = $iterator->field_media_file->entity->getFileUri();
             $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/generic.png");;
-            if ($iterator->hasField('field_media_image')) {
-              $file_uri = $iterator->field_media_image->entity->getFileUri();
-              $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/image.png");;
-            }
-            else if ($iterator->hasField('field_media_audio_file')) {
-              $file_uri = $iterator->field_media_audio_file->entity->getFileUri();
-              $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/audio.png");;
-            }
-            else if ($iterator->hasField('field_media_video_file')) {
-              $file_uri = $iterator->field_media_video_file->entity->getFileUri();
-              $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/video.png");;
-            }
-            else if ($iterator->hasField('field_media_file')) {
-              $file_uri = $iterator->field_media_file->entity->getFileUri();
-              $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/generic.png");;
-            }
-            else if ($iterator->hasField('field_media_document')) {
-              $file_uri = $iterator->field_media_document->entity->getFileUri();
-              $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/audio.png");;
-            }
+          }
+          else if ($iterator->hasField('field_media_document')) {
+            $file_uri = $iterator->field_media_document->entity->getFileUri();
+            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/audio.png");;
+          }
 
-            $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
-              'search_api_islandora_object_thumbnail');
-            if (isset($file_uri)) {
-              $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('large');
-              $file_url = $style->buildUrl($file_uri.".jpg");
-              foreach ($fields as $field) {
-                if ($this->is_404($file_url)) {
-                  $field->addValue($generic_thumbnail);
-                }
-                else {
-                  $field->addValue($file_url);
-                }
+          $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
+            'search_api_islandora_object_thumbnail');
+          if (isset($file_uri)) {
+            $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('large');
+            $file_url = $style->buildUrl($file_uri.".jpg");
+            foreach ($fields as $field) {
+              if ($this->is_404($file_url)) {
+                $field->addValue($generic_thumbnail);
+              }
+              else {
+                $field->addValue($file_url);
               }
             }
-            // break since we assume that one media has ONLY one thumbnail
-            break;
           }
+          // break since we assume that one media has ONLY one thumbnail
+          break;
         }
       }
     }
