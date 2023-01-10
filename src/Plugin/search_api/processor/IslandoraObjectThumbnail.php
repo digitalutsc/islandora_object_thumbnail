@@ -79,27 +79,31 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
   public function addFieldValues(ItemInterface $item) {
     $datasourceId = $item->getDatasourceId();
     if ($datasourceId == 'entity:node') {
-      global $base_url;
-      // process to get the thumbnail
-      $node = $item->getOriginalObject()->getValue();
+      try {
+        global $base_url;
+        // process to get the thumbnail
+        $node = $item->getOriginalObject()->getValue();
 
-      // send the rest request to view islandora_object_thumbnail
-      $uri = "$base_url/islandora_object/". $node->id() . '/thumbnail';
+        // send the rest request to view islandora_object_thumbnail
+        $uri = "$base_url/islandora_object/". $node->id() . '/thumbnail';
 
-      // process the restons
-      $request = \Drupal::httpClient()->get($uri);
-      $thumbnails = json_decode($request->getBody());
+        // process the restons
+        $request = \Drupal::httpClient()->get($uri);
+        $thumbnails = json_decode($request->getBody());
 
-      // loop but assume each media only has ONLY ONE thumbnail
-      foreach ($thumbnails as $thumbnail) {
-        $thumbnail_url = $base_url . $thumbnail->thumbnail__target_id;
+        // loop but assume each media only has ONLY ONE thumbnail
+        foreach ($thumbnails as $thumbnail) {
+          $thumbnail_url = $base_url . $thumbnail->thumbnail__target_id;
 
-        // set value to index to Solr
-        $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
-          'search_api_islandora_object_thumbnail');
-        foreach ($fields as $field) {
-          $field->addValue($thumbnail_url);
+          // set value to index to Solr
+          $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
+            'search_api_islandora_object_thumbnail');
+          foreach ($fields as $field) {
+            $field->addValue($thumbnail_url);
+          }
         }
+      } catch(\Exception $e) {
+        error_log(print_r($e->getMessage(), TRUE), 0);
       }
     }
   }
