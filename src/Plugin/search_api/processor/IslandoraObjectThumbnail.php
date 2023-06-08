@@ -75,13 +75,8 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
     $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
     curl_close($handle);
 
-    /* If the document has loaded successfully without any redirection or error */
-    if ($httpCode >= 200 && $httpCode < 300) {
-      return FALSE;
-    }
-    else {
-      return TRUE;
-    }
+    /* If the document did not load successfully */
+    return $httpCode < 200 || $httpCode >= 300;
   }
 
   /**
