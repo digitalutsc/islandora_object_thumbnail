@@ -183,27 +183,37 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
           $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/generic.png");
           ;
           if ($iterator->hasField('field_media_image')) {
-            $file_uri = $iterator->field_media_image->entity->getFileUri();
+            /** @var \Drupal\file\FileInterface $file */
+            $file = $iterator->field_media_image->entity;
+            $file_uri = $file->getFileUri();
             $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/image.png");
             ;
           }
           elseif ($iterator->hasField('field_media_audio_file')) {
-            $file_uri = $iterator->field_media_audio_file->entity->getFileUri();
+            /** @var \Drupal\file\FileInterface $file */
+            $file = $iterator->field_media_audio_file->entity;
+            $file_uri = $file->getFileUri();
             $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/audio.png");
             ;
           }
           elseif ($iterator->hasField('field_media_video_file')) {
-            $file_uri = $iterator->field_media_video_file->entity->getFileUri();
+            /** @var \Drupal\file\FileInterface $file */
+            $file = $iterator->field_media_video_file->entity;
+            $file_uri = $file->getFileUri();
             $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/video.png");
             ;
           }
           elseif ($iterator->hasField('field_media_file')) {
-            $file_uri = $iterator->field_media_file->entity->getFileUri();
+            /** @var \Drupal\file\FileInterface $file */
+            $file = $iterator->field_media_file->entity;
+            $file_uri = $file->getFileUri();
             $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/generic.png");
             ;
           }
           elseif ($iterator->hasField('field_media_document')) {
-            $file_uri = $iterator->field_media_document->entity->getFileUri();
+            /** @var \Drupal\file\FileInterface $file */
+            $file = $iterator->field_media_document->entity;
+            $file_uri = $file->getFileUri();
             $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/audio.png");
             ;
           }
