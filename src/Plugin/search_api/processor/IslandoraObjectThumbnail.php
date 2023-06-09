@@ -27,11 +27,35 @@ use Drupal\node\NodeInterface;
 class IslandoraObjectThumbnail extends ProcessorPluginBase {
 
   /**
+   * The HTTP client to fetch the feed data with.
+   *
+   * @var \GuzzleHttp\ClientInterface
+   */
+  protected $httpClient;
+
+  /**
+   * The file URL generator service.
+   *
+   * @var \Drupal\Core\File\FileUrlGenerator
+   */
+  protected $fileUrlGenerator;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     /** @var static $processor */
     $processor = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    $processor->httpClient = $container->get('http_client');
+    $processor->fileUrlGenerator = $container->get('file_url_generator');
+    $processor->entityTypeManager = $container->get('entity_type.manager');
     return $processor;
   }
 
@@ -94,7 +118,7 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
         $uri = "$base_url/islandora_object/" . $node->id() . '/thumbnail';
 
         // Process the restons.
-        $request = \Drupal::httpClient()->get($uri);
+        $request = $this->httpClient->request('GET', $uri);
         $thumbnails = json_decode($request->getBody());
 
         // Loop but assume each media only has ONLY ONE thumbnail.
@@ -156,38 +180,38 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
         // Media Use.
         if ($has_thumbnail) {
           $file_uri = NULL;
-          $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/generic.png");
+          $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/generic.png");
           ;
           if ($iterator->hasField('field_media_image')) {
             $file_uri = $iterator->field_media_image->entity->getFileUri();
-            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/image.png");
+            $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/image.png");
             ;
           }
           elseif ($iterator->hasField('field_media_audio_file')) {
             $file_uri = $iterator->field_media_audio_file->entity->getFileUri();
-            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/audio.png");
+            $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/audio.png");
             ;
           }
           elseif ($iterator->hasField('field_media_video_file')) {
             $file_uri = $iterator->field_media_video_file->entity->getFileUri();
-            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/video.png");
+            $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/video.png");
             ;
           }
           elseif ($iterator->hasField('field_media_file')) {
             $file_uri = $iterator->field_media_file->entity->getFileUri();
-            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/generic.png");
+            $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/generic.png");
             ;
           }
           elseif ($iterator->hasField('field_media_document')) {
             $file_uri = $iterator->field_media_document->entity->getFileUri();
-            $generic_thumbnail = \Drupal::service('file_url_generator')->generateAbsoluteString("public://media-icons/generic/audio.png");
+            $generic_thumbnail = $this->fileUrlGenerator->generateAbsoluteString("public://media-icons/generic/audio.png");
             ;
           }
 
           $fields = $this->getFieldsHelper()->filterForPropertyPath($item->getFields(), NULL,
             'search_api_islandora_object_thumbnail');
           if (isset($file_uri)) {
-            $style = \Drupal::entityTypeManager()->getStorage('image_style')->load('large');
+            $style = $this->entityTypeManager->getStorage('image_style')->load('large');
             $file_url = $style->buildUrl($file_uri . ".jpg");
             foreach ($fields as $field) {
               if ($this->is_404($file_url)) {
