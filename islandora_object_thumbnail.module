@@ -7,9 +7,6 @@
 
 use Drupal\Core\Routing\RouteMatchInterface;
 
-use Drupal\node\NodeInterface;
-use Drupal\search_api\Plugin\search_api\datasource\ContentEntity;
-
 /**
  * Implements hook_help().
  */

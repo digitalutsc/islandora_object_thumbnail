@@ -20,6 +20,11 @@ class LoadTest extends BrowserTestBase {
   public static $modules = ['islandora_object_thumbnail'];
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stable';
+
+  /**
    * A user with permission to administer site configuration.
    *
    * @var \Drupal\user\UserInterface
