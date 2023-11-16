@@ -1,15 +1,15 @@
 {
-    "name": "islandora_object_thumbnail",
+    "name": "islandora_lite/islandora_object_thumbnail",
     "type": "drupal-module",
     "description": "This module adds an processor Search API indexer to Solr for Islandora Object with media use",
     "keywords": [
     ],
     "license": "Apache-2.0",
-    "homepage": "https://www.drupal.org/project/islandora_object_thumbnail",
+    "homepage": "https://github.com/digitalutsc/islandora_object_thumbnail",
     "minimum-stability": "dev",
     "support": {
-        "issues": "https://www.drupal.org/project/issues/islandora_object_thumbnail",
-        "source": "http://cgit.drupalcode.org/islandora_object_thumbnail"
+        "issues": "https://github.com/digitalutsc/islandora_object_thumbnail/issues",
+        "source": "https://github.com/digitalutsc/islandora_object_thumbnail"
     },
     "repositories": {
         "drupal": {
