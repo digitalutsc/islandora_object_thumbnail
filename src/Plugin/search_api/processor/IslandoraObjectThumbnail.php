@@ -9,6 +9,7 @@ use Drupal\search_api\Processor\ProcessorProperty;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\media\Entity\Media;
 use Drupal\node\NodeInterface;
+use Drupal\jwt\Authentication\Provider\JwtAuth;
 
 /**
  * Adds the item's view count to the indexed data.
@@ -48,6 +49,13 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
   protected $entityTypeManager;
 
   /**
+   * The JWT token.
+   * 
+   * @var string
+   */
+  protected $jwtToken;
+
+  /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
@@ -56,6 +64,7 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
     $processor->httpClient = $container->get('http_client');
     $processor->fileUrlGenerator = $container->get('file_url_generator');
     $processor->entityTypeManager = $container->get('entity_type.manager');
+    $processor->jwtToken = $container->get('jwt.authentication.jwt')->generateToken();
     return $processor;
   }
 
@@ -118,7 +127,10 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
         $uri = "$base_url/islandora_object/" . $node->id() . '/thumbnail';
 
         // Process the restons.
-        $request = $this->httpClient->request('GET', $uri);
+        $headers = [
+          'Authorization' => 'Bearer ' . $this->jwtToken,
+        ];
+        $request = $this->httpClient->request('GET', $uri, ['headers' => $headers]);
         $thumbnails = json_decode($request->getBody());
 
         // Loop but assume each media only has ONLY ONE thumbnail.
