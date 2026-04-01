@@ -4,12 +4,14 @@ namespace Drupal\Tests\islandora_object_thumbnail\Functional;
 
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Simple test to ensure that main page loads with module enabled.
  *
  * @group islandora_object_thumbnail
  */
+#[RunTestsInSeparateProcesses]
 class LoadTest extends BrowserTestBase {
 
   /**
@@ -22,7 +24,7 @@ class LoadTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'stable';
+  protected $defaultTheme = 'stark';
 
   /**
    * A user with permission to administer site configuration.
@@ -45,7 +47,7 @@ class LoadTest extends BrowserTestBase {
    */
   public function testLoad() {
     $this->drupalGet(Url::fromRoute('<front>'));
-    $this->assertSession()->statusMessageContains('200');
+    $this->assertSession()->statusCodeEquals(200);
   }
 
 }
