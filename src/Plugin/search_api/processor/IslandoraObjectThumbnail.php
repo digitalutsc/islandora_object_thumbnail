@@ -88,8 +88,7 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
    *   TRUE if the URL loads successfully without any redirection or error,
    *   FALSE otherwise.
    */
-  // phpcs:ignore -- Public method name "IslandoraObjectThumbnail::is_404" is not in camel caps format
-  public function is_404($url) {
+  public function is404($url) {
     $handle = curl_init($url);
     curl_setopt($handle, CURLOPT_RETURNTRANSFER, TRUE);
 
@@ -98,8 +97,19 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
 
     /* Check for 404 (file not found). */
     $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
-    // phpcs:ignore -- Function curl_close() has been deprecated
-    curl_close($handle);
+
+    // PHP V8 onwards do not use the curl_close as it has no effect.
+    // If older version, then use curl_close.
+    // Official Docs: https://www.php.net/manual/en/function.curl-close.php.
+    // PHP Watch:
+    // https://php.watch/versions/8.5/curl_close-curl_share_close-deprecated.
+    if (PHP_VERSION_ID >= 80000) {
+      unset($handle);
+    }
+    else {
+      // phpcs:ignore -- Function curl_close() has been deprecated.
+      curl_close($handle);
+    }
 
     /* If the document did not load successfully */
     return $httpCode < 200 || $httpCode >= 300;
@@ -220,7 +230,7 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
             $style = $this->entityTypeManager->getStorage('image_style')->load('large');
             $file_url = $style->buildUrl($file_uri . ".jpg");
             foreach ($fields as $field) {
-              if ($this->is_404($file_url)) {
+              if ($this->is404($file_url)) {
                 $field->addValue($generic_thumbnail);
               }
               else {
