@@ -129,7 +129,7 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
         // Send the rest request to view islandora_object_thumbnail.
         $uri = "$base_url/islandora_object/" . $node->id() . '/thumbnail';
 
-        // Process the restons, use jwt in case site is in maintanence mode.
+        // Process the restons, use jwt in case site is in maintenance mode.
         $jwtService = \Drupal::service('jwt.authentication.jwt');
         if (!empty($jwtService)) {
           $token = $jwtService->generateToken();
