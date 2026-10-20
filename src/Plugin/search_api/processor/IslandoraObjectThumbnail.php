@@ -129,8 +129,20 @@ class IslandoraObjectThumbnail extends ProcessorPluginBase {
         // Send the rest request to view islandora_object_thumbnail.
         $uri = "$base_url/islandora_object/" . $node->id() . '/thumbnail';
 
-        // Process the restons.
-        $request = $this->httpClient->request('GET', $uri);
+        // Process the restons, use jwt in case site is in maintanence mode.
+        $jwtService = \Drupal::service('jwt.authentication.jwt');
+        if (!empty($jwtService)) {
+          $token = $jwtService->generateToken();
+          $request = $this->httpClient->request('GET', $uri, [
+            'headers' => [
+              'Authorization' => 'Bearer ' . $token,
+            ],
+          ]);
+        }
+
+        else {
+          $request = $this->httpClient->request('GET', $uri);
+        }
         $thumbnails = json_decode($request->getBody());
 
         // Loop but assume each media only has ONLY ONE thumbnail.
